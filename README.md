@@ -12,7 +12,7 @@ The Hodgkin-Huxley sodium activation gating variable *m(t)*, governed by:
 
 dm/dt = α(V)(1 − m) − β(V)m
 
-This ODE describes how voltage-gated ion channels open and close in neurons — a foundational mechanism in bioelectricity.
+This ODE describes how voltage-gated ion channels open and close in neurons. This a key mechanism in bioelectricity, which is a field of interest of mine.
 
 ## Project Structure
 
