@@ -16,7 +16,9 @@ This ODE describes how voltage-gated ion channels open and close in neurons. Thi
 
 ## Project Structure
 
-- `notebooks/synthetic_data_generator.ipynb` — Generates synthetic m(t) data from the HH equations under a voltage step protocol
+- `src/hh_physics.py` — Hodgkin-Huxley rate functions (NumPy + PyTorch versions)
+- `src/models.py` — DataDrivenNN and PINN class definitions
+- `notebooks/01_generate_synthetic_data.ipynb` — Generates synthetic m(t) data from the HH equations under a voltage step protocol
 - `notebooks/02_train_data_driven_baseline.ipynb` — Trains a standard feedforward neural network (ReLU) on (t, V) → m(t) with 80/20 train/test split
 - `notebooks/03_train_pinn.ipynb` — Trains a PINN (Tanh activations) that embeds the ODE residual directly into the loss function
 - `notebooks/04_sparse_ablation.ipynb` — Core experiment: trains both models on 25–800 data points and measures generalization gap
