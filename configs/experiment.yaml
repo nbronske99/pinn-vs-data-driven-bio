@@ -1,0 +1,53 @@
+# ==============================================================================
+# Experiment Configuration
+# ==============================================================================
+# Every tunable parameter lives here. Nothing is hardcoded in the scripts.
+# To reproduce: install requirements.txt, then run: bash run_all.sh
+
+# --- Data Generation ---
+data:
+  n_points: 1000
+  t_start: 0.0
+  t_end: 50.0
+  m_initial: 0.05
+  voltage_rest: -65.0
+  voltage_step: 0.0
+  step_start: 5.0
+  step_end: 25.0
+  save_path: data/raw/synthetic_m.npz
+
+# --- Shared Model Architecture ---
+model:
+  input_dim: 2
+  hidden_dim: 64
+  n_hidden_layers: 2
+  output_dim: 1
+
+# --- Training: Data-Driven ---
+data_driven:
+  activation: relu
+  epochs: 2000
+  learning_rate: 0.001
+  optimizer: adam
+
+# --- Training: PINN ---
+pinn:
+  activation: tanh
+  epochs: 3000
+  learning_rate: 0.001
+  optimizer: adam
+  lambda_phys: 0.1
+  n_collocation: 1000
+
+# --- Ablation Study ---
+ablation:
+  train_sizes: [25, 50, 100, 200, 500, 800]
+  n_test: 200
+  n_trials: 3
+  trial_seeds: [0, 1, 2]
+
+# --- Output Paths ---
+paths:
+  data_raw: data/raw
+  data_results: data/results
+  figures: analysis/figures
