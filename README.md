@@ -4,32 +4,50 @@
 
 ## Research Question
 
-Can embedding known differential equations into a neural network's loss function (the PINN approach) outperform purely data-driven models when learning biological dynamics, particularly under sparse and noisy data conditions?
+Does embedding the differential equation that governs a biological system into a neural network's loss function improve the model's accuracy compared to a neural network that learns only from data?
+
+## Hypothesis
+
+The model with the embedded equation will be more accurate when training data is limited, but this advantage will shrink as more training data is provided.
 
 ## System Under Study
 
 The Hodgkin-Huxley sodium activation gating variable *m(t)*, governed by:
 
-dm/dt = α(V)(1 − m) − β(V)m
+    dm/dt = α(V)(1 − m) − β(V)m
 
-This ODE describes how voltage-gated ion channels open and close in neurons. This a key mechanism in bioelectricity, which is a field of interest of mine.
+This first-order ODE describes how voltage-gated ion channels open and close in neurons — a fundamental mechanism in bioelectricity.
+
+## How to Reproduce
+```bash
+pip install -r requirements.txt
+bash run_all.sh
+```
+
+This generates data, runs all experiments, and produces figures. Results land in `data/results/` and figures in `analysis/figures/`.
 
 ## Project Structure
+```
+configs/experiment.yaml    ← every tunable parameter
+src/hh_physics.py          ← Hodgkin-Huxley rate functions (NumPy + PyTorch)
+src/models.py              ← DataDrivenNN and PINN architectures
+experiments/
+  generate_data.py         ← Step 1: solve the ODE, save ground truth
+  run_ablation.py          ← Step 2: train both models at 25–800 data points
+  train_full.py            ← Step 3: full 80/20 split training with curves
+analysis/
+  analyze.py               ← Step 4: generate figures and metrics tables
+  figures/                 ← output plots
+data/raw/                  ← generated synthetic data
+data/results/              ← raw experiment outputs (JSON, npz, weights)
+docs/                      ← paper, poster
+run_all.sh                 ← single command reproduction
+```
 
-- `src/hh_physics.py` — Hodgkin-Huxley rate functions (NumPy + PyTorch versions)
-- `src/models.py` — DataDrivenNN and PINN class definitions
-- `notebooks/01_generate_synthetic_data.ipynb` — Generates synthetic m(t) data from the HH equations under a voltage step protocol
-- `notebooks/02_train_data_driven_baseline.ipynb` — Trains a standard feedforward neural network (ReLU) on (t, V) → m(t) with 80/20 train/test split
-- `notebooks/03_train_pinn.ipynb` — Trains a PINN (Tanh activations) that embeds the ODE residual directly into the loss function
-- `notebooks/04_sparse_ablation.ipynb` — Core experiment: trains both models on 25–800 data points and measures generalization gap
-- `notebooks/05_comparison.ipynb` — Side-by-side metrics, overlay plots, and ablation summary
-- `data/` — Saved synthetic datasets and train/test split indices
-- `outputs/` — Result plots, saved model weights, and metrics
+## Primary Metric
 
-## Status
-
-Core experiments implemented. Possible extensions: inverse parameter recovery, noise robustness testing, λ_phys hyperparameter sweep.
+Test MSE (mean squared error) on held-out data points.
 
 ## Requirements
 
-Python 3.x, PyTorch, NumPy, SciPy, Matplotlib
+Python 3.x, PyTorch, NumPy, SciPy, Matplotlib, PyYAML
