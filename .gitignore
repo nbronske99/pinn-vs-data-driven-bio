@@ -3,3 +3,8 @@ __pycache__/
 .ipynb_checkpoints/
 *.pt
 .DS_Store
+
+# Generated outputs (reproducible via: bash run_all.sh)
+data/raw/
+data/results/
+analysis/figures/
