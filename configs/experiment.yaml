@@ -41,7 +41,7 @@ pinn:
 
 # --- Ablation Study ---
 ablation:
-  train_sizes: [25, 50, 100, 200, 500, 800]
+  train_sizes: [25, 50, 100, 200, 400, 800]
   n_test: 200
   n_trials: 3
   trial_seeds: [0, 1, 2]
