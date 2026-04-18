@@ -22,7 +22,7 @@ from src.models import DataDrivenNN, PINN
 
 def train_data_driven(X_train, y_train, X_test, y_test, cfg, seed=0):
     torch.manual_seed(seed)
-    model = DataDrivenNN(hidden_dim=cfg["model"]["hidden_dim"])
+    model = DataDrivenNN(hidden_dim=cfg["model"]["hidden_dim"]).to(X_train.device)
     optimizer = optim.Adam(model.parameters(), lr=cfg["data_driven"]["learning_rate"])
     criterion = nn.MSELoss()
 
@@ -39,7 +39,7 @@ def train_data_driven(X_train, y_train, X_test, y_test, cfg, seed=0):
 
 def train_pinn(X_train, y_train, X_test, y_test, X_colloc, cfg, seed=0):
     torch.manual_seed(seed)
-    model = PINN(hidden_dim=cfg["model"]["hidden_dim"])
+    model = PINN(hidden_dim=cfg["model"]["hidden_dim"]).to(X_train.device)
     optimizer = optim.Adam(model.parameters(), lr=cfg["pinn"]["learning_rate"])
     criterion = nn.MSELoss()
     lambda_phys = cfg["pinn"]["lambda_phys"]
@@ -61,6 +61,8 @@ def train_pinn(X_train, y_train, X_test, y_test, X_colloc, cfg, seed=0):
 def main():
     with open("configs/experiment.yaml", "r") as f:
         cfg = yaml.safe_load(f)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Using device: {device}")
 
     data = np.load(cfg["data"]["save_path"])
     t = data["t"]
@@ -75,9 +77,9 @@ def main():
     test_idx = all_idx[: ab["n_test"]]
     pool_idx = all_idx[ab["n_test"] :]
 
-    X_test = torch.tensor(X_all[test_idx], dtype=torch.float32)
-    y_test = torch.tensor(m_true[test_idx], dtype=torch.float32).unsqueeze(1)
-    X_full = torch.tensor(X_all, dtype=torch.float32)
+    X_test = torch.tensor(X_all[test_idx], dtype=torch.float32).to(device)
+    y_test = torch.tensor(m_true[test_idx], dtype=torch.float32).unsqueeze(1).to(device)
+    X_full = torch.tensor(X_all, dtype=torch.float32).to(device)
 
     print(f"Fixed test set: {len(test_idx)} points")
     print(f"Training pool:  {len(pool_idx)} points")
@@ -98,8 +100,8 @@ def main():
             rng = np.random.RandomState(seed * 100 + n_train)
             sub_idx = rng.choice(pool_idx, size=n_train, replace=False)
 
-            X_train = torch.tensor(X_all[sub_idx], dtype=torch.float32)
-            y_train = torch.tensor(m_true[sub_idx], dtype=torch.float32).unsqueeze(1)
+            X_train = torch.tensor(X_all[sub_idx], dtype=torch.float32).to(device)
+            y_train = torch.tensor(m_true[sub_idx], dtype=torch.float32).unsqueeze(1).to(device)
 
             dd_mse, _ = train_data_driven(X_train, y_train, X_test, y_test, cfg, seed=seed)
             dd_mses.append(dd_mse)
