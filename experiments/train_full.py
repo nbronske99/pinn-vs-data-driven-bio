@@ -23,6 +23,8 @@ from src.models import DataDrivenNN, PINN
 def main():
     with open("configs/experiment.yaml", "r") as f:
         cfg = yaml.safe_load(f)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Using device: {device}")
 
     data = np.load(cfg["data"]["save_path"])
     t = data["t"]
@@ -37,11 +39,11 @@ def main():
     split = int(0.8 * n)
     train_idx, test_idx = idx[:split], idx[split:]
 
-    X_train = torch.tensor(X_all[train_idx], dtype=torch.float32)
-    y_train = torch.tensor(m_true[train_idx], dtype=torch.float32).unsqueeze(1)
-    X_test = torch.tensor(X_all[test_idx], dtype=torch.float32)
-    y_test = torch.tensor(m_true[test_idx], dtype=torch.float32).unsqueeze(1)
-    X_full = torch.tensor(X_all, dtype=torch.float32)
+    X_train = torch.tensor(X_all[train_idx], dtype=torch.float32).to(device)
+    y_train = torch.tensor(m_true[train_idx], dtype=torch.float32).unsqueeze(1).to(device)
+    X_test = torch.tensor(X_all[test_idx], dtype=torch.float32).to(device)
+    y_test = torch.tensor(m_true[test_idx], dtype=torch.float32).unsqueeze(1).to(device)
+    X_full = torch.tensor(X_all, dtype=torch.float32).to(device)
 
     print(f"Training samples: {len(train_idx)}")
     print(f"Test samples:     {len(test_idx)}")
@@ -54,7 +56,7 @@ def main():
     # ==================== DATA-DRIVEN MODEL ====================
     print("\nTraining data-driven baseline...")
     torch.manual_seed(0)
-    dd_model = DataDrivenNN(hidden_dim=cfg["model"]["hidden_dim"])
+    dd_model = DataDrivenNN(hidden_dim=cfg["model"]["hidden_dim"]).to(device)
     dd_optimizer = optim.Adam(dd_model.parameters(), lr=cfg["data_driven"]["learning_rate"])
 
     dd_train_losses = []
@@ -74,12 +76,12 @@ def main():
         if epoch % 400 == 0:
             print(f"  Epoch {epoch:4d} | Train: {dd_train_losses[-1]:.6f} | Test: {dd_test_losses[-1]:.6f}")
 
-    dd_pred = dd_model(X_full).detach().numpy().flatten()
+    dd_pred = dd_model(X_full).detach().cpu().numpy().flatten()
 
     # ==================== PINN ====================
     print("\nTraining PINN...")
     torch.manual_seed(0)
-    pinn_model = PINN(hidden_dim=cfg["model"]["hidden_dim"])
+    pinn_model = PINN(hidden_dim=cfg["model"]["hidden_dim"]).to(device)
     pinn_optimizer = optim.Adam(pinn_model.parameters(), lr=cfg["pinn"]["learning_rate"])
     lambda_phys = cfg["pinn"]["lambda_phys"]
 
@@ -109,7 +111,7 @@ def main():
         if epoch % 500 == 0:
             print(f"  Epoch {epoch:4d} | Total: {loss.item():.6f} | Data: {data_loss.item():.6f} | Phys: {phys_loss.item():.6f} | Test: {pinn_test_losses[-1]:.6f}")
 
-    pinn_pred = pinn_model(X_full).detach().numpy().flatten()
+    pinn_pred = pinn_model(X_full).detach().cpu().numpy().flatten()
 
     # ==================== SAVE ====================
     full_results = {
