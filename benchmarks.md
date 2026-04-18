@@ -1,0 +1,3 @@
+=== CPU baseline, Fri Apr 17 10:54:02 PM EDT 2026 ===
+System: Linux nicksPC 6.17.0-20-generic #20~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Mar 19 01:28:37 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+
